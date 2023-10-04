@@ -1,10 +1,11 @@
 import json
 import time
+import os
 
 import requests
 import yaml
 
-
+# Notion: https://www.notion.so/756bef01bf224a129535627213ba4e14?v=41032af0277c4a2193fdf26d9b7f18b4
 class MyIntegration:
 
     def __init__(self):
@@ -18,6 +19,7 @@ class MyIntegration:
                 print("[Error]: while reading yml file", exc)
         self.my_variables_map["NOTION_ENTRIES"] = {}
         self.getDatabaseId()
+        print(self.my_variables_map["DATABASE_ID"])
         self.getNotionDatabaseEntities()
 
     def getDatabaseId(self):
@@ -28,6 +30,9 @@ class MyIntegration:
                 'Bearer ' + self.my_variables_map["MY_NOTION_SECRET_TOKEN"]
         }
         response = requests.request("GET", url, headers=headers)
+        if not response.json()["results"]:
+            print("List of results is empty")
+            os.sys.exit(100)
         self.my_variables_map["DATABASE_ID"] = response.json()["results"][0]["id"]
 
     def getNotionDatabaseEntities(self):
@@ -38,7 +43,10 @@ class MyIntegration:
         }
         response = requests.request("POST", url, headers=headers)
         resp = response.json()
+        print(resp["results"])
         for v in resp["results"]:
+            print(v["properties"]["Name"]["title"][0]["text"]["content"])
+            print(float(v["properties"]["Price/Coin"]["number"]))
             self.my_variables_map["NOTION_ENTRIES"].update({v["properties"]["Name"]["title"][0]["text"]["content"]: {"page": v["id"], "price": float(v["properties"]["Price/Coin"]["number"])}})
 
     def getCryptoPrices(self):
@@ -99,4 +107,5 @@ class MyIntegration:
 
 if __name__ == "__main__":
     # With 😴 sleeps to prevent rate limit from kicking in.
-    MyIntegration().UpdateIndefinitely()
+    # MyIntegration().UpdateIndefinitely()
+      MyIntegration()
